@@ -1,0 +1,65 @@
+{
+  "variables": {
+    "rgname": "test-dnc",
+    "imagename": "lxapp01",
+    "packagepath": "../asset/apiapp.zip",
+    "svcpath": "../asset/dncapp.service",
+
+    "client_id": "_add_here_",
+    "client_secret": "_add_here_",
+    "tenant_id": "_add_here_",
+    "subscription_id": "_add_here_"
+  },
+  "builders": [{
+    "type": "azure-arm",
+    "client_id": "{{user `client_id`}}",
+    "client_secret": "{{user `client_secret`}}",
+    "tenant_id": "{{user `tenant_id`}}",
+    "subscription_id": "{{user `subscription_id`}}",
+
+    "managed_image_resource_group_name": "{{user `rgname`}}",
+    "managed_image_name": "{{user `imagename`}}",
+
+    "os_type": "Linux",
+    "image_publisher": "Canonical",
+    "image_offer": "UbuntuServer",
+    "image_sku": "16.04-LTS",
+
+    "location": "koreacentral",
+    "vm_size": "Standard_DS2_v2"
+  }],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "{{user `packagepath`}}",
+      "destination": "/tmp/package.zip"
+    },
+    {
+      "type": "file",
+      "source": "{{user `svcpath`}}",
+      "destination": "/tmp/dncapp.service"
+    },
+    {
+    "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+    "inline": [
+      "apt-get update",
+
+      "wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb",
+      "dpkg -i packages-microsoft-prod.deb",
+
+      "apt-get install -y apt-transport-https",
+      "apt-get update",
+      "apt-get install -y aspnetcore-runtime-2.2 zip",
+
+      "mkdir /var/app",
+      "unzip /tmp/package.zip -d /var/app",
+
+      "cp /tmp/dncapp.service /etc/systemd/system/dncapp.service",
+      "systemctl enable dncapp.service",
+
+      "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+    ],
+    "inline_shebang": "/bin/sh -x",
+    "type": "shell"      
+  }]
+}

@@ -43,6 +43,12 @@
         },
         "packageUrl": {
             "type": "string"
+        },
+        "thumbprint": {
+            "type": "string"
+        },
+        "identityName": {
+            "type": "string"
         }
     },
     "variables": {
@@ -54,14 +60,16 @@
         "namingInfix": "[toLower(substring(concat(parameters('vmssName'), uniqueString(resourceGroup().id)), 0, 9))]",
         "networkApiVersion": "2018-01-01",
         "storageApiVersion": "2017-10-01",
-        "computeApiVersion": "2017-12-01",
+        "computeApiVersion": "2018-06-01",
         "autoscaleApiVersion": "2015-04-01",
         "loadBalancerName": "[concat(parameters('vmssName'), 'Elb')]",
         "loadBalancerId": "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]",
         "networkSecurityGroupName": "[concat(parameters('vmssName'), 'nsg')]",
         "location": "[resourceGroup().location]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
-        "subnetRef": "[concat(variables('vnetID'),'/subnets/', variables('subnetName'))]"
+        "subnetRef": "[concat(variables('vnetID'),'/subnets/', variables('subnetName'))]",
+        "scriptFile": "[substring(parameters('scriptUrl'), add(lastIndexOf(parameters('scripturl'), '/'), 1))]"
+
     },
     "resources": [
         {
@@ -283,6 +291,12 @@
             "name": "[parameters('vmssName')]",
             "apiVersion": "[variables('computeApiVersion')]",
             "location": "[variables('location')]",
+            "identity": {
+                "type": "userAssigned",
+                "userAssignedIdentities": {
+                    "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/',parameters('identityName'))]": {}
+                }
+            },
             "properties": {
                 "overprovision": false,
                 "upgradePolicy": {
@@ -391,7 +405,7 @@
                                             "[parameters('scriptUrl')]",
                                             "[parameters('packageUrl')]"
                                         ],
-                                        "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File install_script.ps1 ', variables('packageName'))]"
+                                        "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('scriptFile'), ' -thumbprint ', parameters('thumbprint'), ' -packagename ', variables('packageName'))]"
                                     }
                                 }
                             }

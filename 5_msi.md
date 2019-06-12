@@ -73,3 +73,29 @@ curl -k https://<ip>/blob
 
 Hello, Microsoft Azure
 ```
+
+## Deploy VMSS with MSI using ARM Template
+
+Please refer following link to deploy MSI using ARM template.
+
+[https://github.com/Azure/azure-quickstart-templates/tree/master/201-vmss-msi/](https://github.com/Azure/azure-quickstart-templates/tree/master/201-vmss-msi/)
+
+## User Assigned Identity
+
+If you want to use a [User-Assigned Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/how-to-manage-ua-identity-portal) then you could add following code in your ARM template under `"Microsoft.Compute/virtualMachineScaleSets"` resource. You also need to assign `identityName` value in your parameter.
+
+```
+    {
+        "type": "Microsoft.Compute/virtualMachineScaleSets",
+        ...
+        "identity": {
+            "type": "userAssigned",
+            "userAssignedIdentities": {
+                "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/',parameters('identityName'))]": {}
+            }
+        },
+        ...
+    }
+```
+
+> Note that `vmss_win_ext.json` template requires __user-assinged managed idenity__. 

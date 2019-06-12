@@ -42,6 +42,12 @@
         },
         "packageUrl": {
             "value": "_add_here_"
+        },
+        "thumbprint": {
+            "value": "_add_here_"
+        },
+        "identityName": {
+            "value": "_add_here_"
         }
     }
 }

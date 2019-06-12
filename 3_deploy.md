@@ -70,6 +70,8 @@ Set `secrets` and `WindowsConfiguration` properties.
     },
 ```
 
+For manual WinRM configuration, please refer [ConfigureWinRM.ps1](https://github.com/Azure/azure-quickstart-templates/blob/master/201-vm-winrm-windows/ConfigureWinRM.ps1).
+
 ### Enable IIS to communicate https
 
 You'll setup binding SSL certificate to IIS for HTTPS communication. You can do this by running custom script using VM extension like below.
@@ -109,11 +111,8 @@ az group deployment create -g $rg -n $vmssprod --template-file vmss_win.json --p
 
 ```
 
-If you want to apply rolling policy to VMSS use [vmss_win_rolling.json](./template/vmss_win_rolling.json) template.
+> Note that templates are enabled rolling policy.
 
-```
-az group deployment create -g $rg -n $vmssstag --template-file vmss_win_rolling.json --parameters @vmss_win.parameters.json
-```
 
 ## Deploy using patform image + VM Extension
 
@@ -138,7 +137,7 @@ Azure template for this deployment is below.
                             "[parameters('scriptUrl')]",
                             "[parameters('packageUrl')]"
                         ],
-                        "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File install_script.ps1 ', variables('packageName')]"
+                        "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('scriptFile'), ' -thumbprint ', parameters('thumbprint'), ' -packagename ', variables('packageName'))]"
                     }
                 }
             }
@@ -167,6 +166,7 @@ curl -k https://<ip>/api/values
 
 ## References
 
+- [VMSS template reference](https://docs.microsoft.com/en-us/azure/templates/microsoft.compute/2018-10-01/virtualmachinescalesets)
 - [Custom Script Extension for Windows](https://docs.microsoft.com/en-us/azure/virtual-machines/extensions/custom-script-windows)
 Reference for config HTTPS:
 - [Secure a web server on a Windows on Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/tutorial-secure-web-server)

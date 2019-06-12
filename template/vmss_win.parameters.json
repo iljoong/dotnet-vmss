@@ -39,6 +39,9 @@
         },
         "scriptUrl": {
             "value": "_add_here_"
+        },
+        "thumbprint": {
+            "value": "_add_here_"
         }
     }
 }

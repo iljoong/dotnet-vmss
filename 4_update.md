@@ -14,6 +14,24 @@ az vmss update-instances -g $rg -n $vmssprod --instance-ids "*"
 az vmss update -g $rg -n $vmssprod --query upgradePolicy --set upgradePolicy.mode="Rolling"
 ```
 
+## Update new certificate without downtime
+
+With rolling update, you can update new certificate without downtime. You can execute following CLI.
+
+```
+az vmss update -g test-dnc -n otnapi \
+--set virtualMachineProfile.osProfile.secrets[0].vaultCertificates[0].certificateUrl="https://kv.vault.azure.net/secrets/certificateurl" \
+--set virtualMachineProfile.extensionProfile.extensions[0].settings='{"fileUris": ["https://xxxx.blob.core.windows.net/package/script.ps1", "https://xxxx.blob.core.windows.net/package/appsettings.json"],"commandToExecute": "powershell -ExecutionPolicy Unrestricted -File script.ps1 -thumbprint _NEW_THUMBPRINT_"}'
+```
+
+### Troubleshooting
+
+Login to one of VMSS instances and do following verifications
+
+- To verify whether the new certifcate is installed correctly, run `dir Cert:\LocalMachine\My` to see new thumbprint
+- To verify whether the new extension is executed correctly, go to `C:\Packages\Plugins\Microsoft.Compute.CustomScriptExtension\1.9.3\Downloads` and check log file in newly created folder
+
+
 ## VIP Swap
 
 VMSS does not provide _VIP swap_ but you could manually swap VIP of VMSS LB. Following script swap IPs of VMSS LBs.

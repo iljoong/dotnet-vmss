@@ -40,11 +40,13 @@
         },
         "scriptUrl": {
             "type": "string"
-        }
+        },
+        "thumbprint": {
+            "type": "string"
+        }       
     },
     "variables": {
         "pipName": "[concat(parameters('vmssName'), '-pip')]",
-        "script": "[parameters('scriptUrl')]",
         "vnetName": "[parameters('vnetname')]",
         "subnetName": "[parameters('subnetname')]",
         "subnet": "[parameters('subnet')]",
@@ -58,7 +60,8 @@
         "networkSecurityGroupName": "[concat(parameters('vmssName'), 'nsg')]",
         "location": "[resourceGroup().location]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
-        "subnetRef": "[concat(variables('vnetID'),'/subnets/', variables('subnetName'))]"
+        "subnetRef": "[concat(variables('vnetID'),'/subnets/', variables('subnetName'))]",
+        "scriptFile": "[substring(parameters('scriptUrl'), add(lastIndexOf(parameters('scripturl'), '/'), 1))]"
     },
     "resources": [
         {
@@ -148,7 +151,7 @@
                             "enableFloatingIP": false,
                             "idleTimeoutInMinutes": 5,
                             "probe": {
-                                "id": "[concat(variables('loadBalancerId'),'/probes/tcpProbe')]"
+                                "id": "[concat(variables('loadBalancerId'),'/probes/httpProbe')]"
                             }
                         }
                     },
@@ -167,7 +170,7 @@
                             "enableFloatingIP": false,
                             "idleTimeoutInMinutes": 5,
                             "probe": {
-                                "id": "[concat(variables('loadBalancerId'),'/probes/tcpProbe')]"
+                                "id": "[concat(variables('loadBalancerId'),'/probes/httpProbe')]"
                             }
                         }
                     }
@@ -283,7 +286,13 @@
             "properties": {
                 "overprovision": false,
                 "upgradePolicy": {
-                    "mode": "Manual"
+                    "mode": "Rolling",
+                    "rollingUpgradePolicy": {
+                      "maxBatchInstancePercent": 20,
+                      "maxUnhealthyInstancePercent": 20,
+                      "maxUnhealthyUpgradedInstancePercent": 20,
+                      "pauseTimeBetweenBatches": "PT0S"
+                    }
                 },
                 "virtualMachineProfile": {
                     "storageProfile": {
@@ -325,10 +334,13 @@
                                     }
                                 ]
                             },
-                            "enableAutomaticUpdates": false
+                            "enableAutomaticUpdates": true
                         }
                     },
                     "networkProfile": {
+                        "healthProbe" : {
+                            "id": "[concat(variables('loadBalancerId'),'/probes/httpProbe')]"
+                        },
                         "networkInterfaceConfigurations": [
                             {
                                 "name": "[concat(parameters('vmssName'), 'Nic')]",
@@ -373,9 +385,9 @@
                                     "autoUpgradeMinorVersion": true,
                                     "settings": {
                                         "fileUris": [
-                                            "[variables('script')]"
+                                            "[parameters('script')]"
                                         ],
-                                        "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File iis_script.ps1"
+                                        "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('scriptFile'), ' -thumbprint ', parameters('thumbprint'))]"
                                     }
                                 }
                             }

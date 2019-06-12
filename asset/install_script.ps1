@@ -1,5 +1,6 @@
 param (
-    [string]$packagename
+    [string]$packagename,
+    [string]$thumbprint
 )
 
 function logging($output)
@@ -29,7 +30,9 @@ logging("enabling IIS SSL")
 
 # https://docs.microsoft.com/en-us/azure/virtual-machines/windows/tutorial-secure-web-server#configure-iis-to-use-the-certificate
 New-WebBinding -Name "Default Web Site" -Protocol https -Port 443
-Get-ChildItem cert:\LocalMachine\My\_THUMBPRINT_ | New-Item -Path IIS:\SslBindings\!443
+
+if (Test-Path IIS:\SslBindings\0.0.0.0!443) {Remove-Item -Path IIS:\SslBindings\0.0.0.0!443}
+Get-ChildItem cert:\LocalMachine\My\$thumbprint | New-Item -Path IIS:\SslBindings\!443
 
 logging("restart IIS")
 

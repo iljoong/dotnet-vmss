@@ -1,0 +1,18 @@
+[Unit]
+Description=ASP.NET core app
+
+[Service]
+WorkingDirectory=/var/app
+ExecStart=/usr/bin/dotnet /var/app/dncbench.dll
+Restart=always
+# Restart service after 10 seconds if the dotnet service crashes:
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=dncapp
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+# run as ROOT for port 80
+Environment=ASPNETCORE_URLS=http://0.0.0.0:80
+
+[Install]
+WantedBy=multi-user.target

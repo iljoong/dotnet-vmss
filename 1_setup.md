@@ -26,6 +26,10 @@ az keyvault certificate create \
 
 Create a secret `adminpassword` and put your admin password. You also create a secret `testkey` and put any secret string such as `Microsoft Azure`.
 
+Lastly, you need to enable access to ARM template deployment for this sample. 
+
+![advanced access policies](https://docs.microsoft.com/en-us/azure/azure-resource-manager/media/resource-manager-tutorial-use-key-vault/resource-manager-tutorial-key-vault-access-policies.png)
+
 ## Setup Blob
 
 Create a blob container (private) `doc` and copy [hello.txt](./asset/hello.txt) to this container location. You will access this file using MSI.
